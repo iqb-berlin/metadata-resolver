@@ -1,6 +1,6 @@
 # @iqb/metadata-resolver
 
-Framework-agnostic TypeScript library for loading metadata profiles and vocabularies.
+TypeScript library for loading metadata profiles and vocabularies.
 
 ## Installation
 ```bash
