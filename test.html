@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metadata Resolver Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #555;
+      margin-top: 30px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #555;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .output {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 15px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 13px;
+    }
+    .success {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .error {
+      color: #f44336;
+      font-weight: bold;
+    }
+    .loading {
+      color: #2196F3;
+      font-weight: bold;
+    }
+    .info-box {
+      background: #e3f2fd;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+    .vocab-item {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    .vocab-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .vocab-title {
+      font-weight: bold;
+      color: #333;
+      font-size: 16px;
+    }
+    .vocab-status {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 3px;
+    }
+    .vocab-status.success {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .vocab-status.failed {
+      background: #ffebee;
+      color: #c62828;
+    }
+    .vocab-url {
+      font-size: 12px;
+      color: #666;
+      word-break: break-all;
+      margin-bottom: 8px;
+    }
+    .vocab-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .vocab-stat {
+      background: #f5f5f5;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    .vocab-stat-label {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+    }
+    .vocab-stat-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-top: 2px;
+    }
+    .vocab-concepts {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #e0e0e0;
+    }
+    .vocab-concepts-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .concept-sample {
+      font-size: 12px;
+      color: #666;
+      padding: 4px;
+      background: #fafafa;
+      border-left: 2px solid #4CAF50;
+      margin-bottom: 4px;
+      padding-left: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Metadata Resolver Test Page</h1>
+
+  <div class="info-box">
+    <strong>Note:</strong> This page tests the metadata-resolver package.
+    Make sure to build the package first with <code>npm run build</code> before testing.
+  </div>
+
+  <h2>Profile URL</h2>
+  <div class="input-group">
+    <label for="profileUrl">Profile JSON URL:</label>
+    <input
+            type="text"
+            id="profileUrl"
+            placeholder="https://raw.githubusercontent.com/iqb-vocabs/p16/master/unit.json"
+            value="https://raw.githubusercontent.com/iqb-vocabs/p16/master/unit.json">
+    <small style="color: #666; display: block; margin-top: 5px;">
+      The profile defines the structure and which vocabularies to load.
+    </small>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <button onclick="testLoadProfile()">Load Profile Only</button>
+    <button onclick="testLoadWithVocabularies()">Load Profile and Vocabularies</button>
+    <button onclick="clearOutput()">Clear Output</button>
+  </div>
+
+  <div id="status"></div>
+  <div id="output"></div>
+</div>
+
+<script type="module">
+  import { MetadataResolver } from './dist/index.mjs';
+
+  let resolver;
+
+  function initResolver() {
+    resolver = new MetadataResolver({
+      cache: true,
+      preferredLanguage: 'de'
+    });
+    return resolver;
+  }
+
+  function setStatus(message, type = 'info') {
+    const statusDiv = document.getElementById('status');
+    statusDiv.innerHTML = `<div class="output ${type}">${message}</div>`;
+  }
+
+  function appendOutput(title, content) {
+    const outputDiv = document.getElementById('output');
+    const item = document.createElement('div');
+    item.className = 'output';
+    item.innerHTML = `<strong>${title}</strong><pre>${JSON.stringify(content, null, 2)}</pre>`;
+    outputDiv.appendChild(item);
+  }
+
+  window.testLoadProfile = async function() {
+    try {
+      setStatus('Loading profile...', 'loading');
+      const resolver = initResolver();
+      const profileUrl = document.getElementById('profileUrl').value.trim();
+
+      if (!profileUrl) {
+        setStatus('Error: Please enter a profile URL', 'error');
+        return;
+      }
+
+      const profile = await resolver.loadProfile(profileUrl);
+      setStatus('Profile loaded successfully', 'success');
+
+      appendOutput('Profile Summary', {
+        id: profile.id,
+        title: profile.title,
+        groups: profile.groups?.length,
+        totalFields: profile.groups?.reduce((sum, g) => sum + (g.entries?.length || 0), 0)
+      });
+
+      appendOutput('Profile Structure', profile);
+
+      const vocabUrls = resolver.extractVocabularyUrls(profile);
+      if (vocabUrls.length > 0) {
+        appendOutput(`Vocabulary URLs Referenced (${vocabUrls.length})`, vocabUrls);
+      } else {
+        appendOutput('Vocabulary URLs', 'No vocabularies referenced in this profile');
+      }
+    } catch (error) {
+      setStatus(`Error: ${error.message}`, 'error');
+      console.error(error);
+    }
+  };
+
+  window.testLoadWithVocabularies = async function() {
+    try {
+      setStatus('Loading profile and vocabularies...', 'loading');
+      const resolver = initResolver();
+      const profileUrl = document.getElementById('profileUrl').value.trim();
+
+      if (!profileUrl) {
+        setStatus('Error: Please enter a profile URL', 'error');
+        return;
+      }
+
+      const { profile, vocabularies } = await resolver.loadProfileWithVocabularies(profileUrl);
+      setStatus('Profile and vocabularies loaded successfully', 'success');
+
+      appendOutput('Profile Summary', {
+        id: profile.id,
+        title: profile.title,
+        groups: profile.groups?.length,
+        vocabulariesFound: vocabularies.length
+      });
+
+      const outputDiv = document.getElementById('output');
+
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'output';
+      headerDiv.innerHTML = `<strong>Vocabularies Loaded (${vocabularies.length})</strong>`;
+      outputDiv.appendChild(headerDiv);
+
+      vocabularies.forEach((vocab, index) => {
+        const vocabDiv = document.createElement('div');
+        vocabDiv.className = 'vocab-item';
+
+        const sampleConcepts = Object.values(vocab.dictionary).slice(0, 3);
+
+        vocabDiv.innerHTML = `
+            <div class="vocab-header">
+              <div class="vocab-title">
+                ${index + 1}. ${vocab.data.title?.de || vocab.data.title?.en || 'Untitled Vocabulary'}
+              </div>
+              <div class="vocab-status ${vocab.error ? 'failed' : 'success'}">
+                ${vocab.error ? 'FAILED' : 'LOADED'}
+              </div>
+            </div>
+
+            <div class="vocab-url">
+              <strong>URL:</strong> ${vocab.url}
+            </div>
+
+            ${vocab.error ?
+                `<div class="error" style="margin-top: 10px;">
+                <strong>Error:</strong> ${vocab.error}
+              </div>`
+                :
+                `
+              <div class="vocab-stats">
+                <div class="vocab-stat">
+                  <div class="vocab-stat-label">Top Concepts</div>
+                  <div class="vocab-stat-value">${vocab.data.hasTopConcept?.length || 0}</div>
+                </div>
+                <div class="vocab-stat">
+                  <div class="vocab-stat-label">Total Entries</div>
+                  <div class="vocab-stat-value">${Object.keys(vocab.dictionary).length}</div>
+                </div>
+                <div class="vocab-stat">
+                  <div class="vocab-stat-label">Vocabulary ID</div>
+                  <div class="vocab-stat-value" style="font-size: 12px; word-break: break-all;">
+                    ${vocab.data.id || 'N/A'}
+                  </div>
+                </div>
+              </div>
+
+              ${sampleConcepts.length > 0 ? `
+                <div class="vocab-concepts">
+                  <div class="vocab-concepts-title">Sample Entries:</div>
+                  ${sampleConcepts.map(entry => `
+                    <div class="concept-sample">
+                      <strong>${entry.notation.join('.')}:</strong> ${entry.name}
+                    </div>
+                  `).join('')}
+                  ${Object.keys(vocab.dictionary).length > 3 ?
+                        `<div style="font-size: 11px; color: #999; margin-top: 5px;">
+                      ... and ${Object.keys(vocab.dictionary).length - 3} more entries
+                    </div>`
+                        : ''}
+                </div>
+              ` : ''}
+              `
+        }
+          `;
+        outputDiv.appendChild(vocabDiv);
+      });
+
+      const allVocabDict = resolver.getVocabularyDictionary();
+      appendOutput('Combined Vocabulary Dictionary', {
+        totalEntries: Object.keys(allVocabDict).length,
+        sampleKeys: Object.keys(allVocabDict).slice(0, 5),
+        note: 'This dictionary combines all vocabulary entries for easy lookup by ID'
+      });
+
+      const storedVocabs = resolver.getVocabularies();
+      appendOutput('Resolver Store', {
+        vocabulariesInStore: storedVocabs.length,
+        note: 'Vocabularies are cached in the resolver for reuse'
+      });
+
+    } catch (error) {
+      setStatus(`Error: ${error.message}`, 'error');
+      console.error(error);
+    }
+  };
+
+  window.clearOutput = function() {
+    document.getElementById('output').innerHTML = '';
+    document.getElementById('status').innerHTML = '';
+  };
+
+  window.MetadataResolver = MetadataResolver;
+  console.log('MetadataResolver loaded and available as window.MetadataResolver');
+  console.log('Usage: const resolver = new MetadataResolver(); await resolver.loadProfile("...")');
+</script>
+</body>
+</html>
