@@ -136,13 +136,13 @@ export class MetadataResolver {
     }
 
     try {
-      console.log(`\n🔍 Loading: ${url}`);
+      console.log(`Loading vocabulary: ${url}`);
 
       // Resolve correct JSON-LD endpoint
       const jsonLdUrl = await this.resolveJsonLdUrl(url);
 
       if (jsonLdUrl !== url) {
-        console.log(`  ↳ Resolved to: ${jsonLdUrl}`);
+        console.log(`  Resolved to: ${jsonLdUrl}`);
       }
 
       const fetchUrl = this.corsProxy
@@ -150,7 +150,7 @@ export class MetadataResolver {
           : jsonLdUrl;
 
       if (this.corsProxy) {
-        console.log(`  ↳ Using CORS proxy`);
+        console.log(`  Using CORS proxy`);
       }
 
       const response = await fetch(fetchUrl, {
@@ -180,14 +180,14 @@ export class MetadataResolver {
       }
 
       console.log(
-          `  ✅ ${data.hasTopConcept.length} concepts, ${
+          `  Loaded: ${data.hasTopConcept.length} concepts, ${
               Object.keys(dictionary).length
           } entries`
       );
       return resolved;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      console.error(`  ❌ FAILED: ${errorMsg}`);
+      console.error(`  Failed to load vocabulary: ${errorMsg}`);
       return {
         url,
         data: { hasTopConcept: [] },
@@ -214,9 +214,8 @@ export class MetadataResolver {
         )
         .map((result) => result.value);
 
-    // No need to store again - loadVocabulary already does it!
     console.log(
-        `✅ Loaded ${vocabularies.length} vocabularies (${this.vocabulariesStore.size} total in store)`
+        `Loaded ${vocabularies.length} vocabularies (${this.vocabulariesStore.size} total in store)`
     );
 
     return vocabularies;
@@ -276,8 +275,8 @@ export class MetadataResolver {
    */
   private async resolveJsonLdUrl(originalUrl: string): Promise<string> {
     try {
-      console.log(`🔍 Resolving: ${originalUrl}`);
-      console.log(`  Using CORS proxy: ${this.corsProxy || "NO"}`);
+      console.log(`Resolving URL: ${originalUrl}`);
+      console.log(`  CORS proxy: ${this.corsProxy || "disabled"}`);
 
       const fetchUrl = this.corsProxy
           ? `${this.corsProxy}${encodeURIComponent(originalUrl)}`
@@ -314,11 +313,11 @@ export class MetadataResolver {
                 }
             );
             if (resp.ok) {
-              console.log(`  ↳ Found: ${jsonldUrl}`);
+              console.log(` Found JSON-LD: ${jsonldUrl}`);
               return jsonldUrl;
             }
           } catch (err) {
-            console.log(`  ↳ .jsonld not available: ${err instanceof Error ? err.message : String(err)}`);
+            console.log(` JSON-LD not available: ${err instanceof Error ? err.message : String(err)}`);
           }
 
           // Try .json
@@ -334,11 +333,11 @@ export class MetadataResolver {
                 }
             );
             if (resp.ok) {
-              console.log(`  ↳ Found: ${jsonUrl}`);
+              console.log(` Found JSON: ${jsonUrl}`);
               return jsonUrl;
             }
           } catch (err) {
-            console.log(`  ↳ .json not available: ${err instanceof Error ? err.message : String(err)}`);
+            console.log(` JSON not available: ${err instanceof Error ? err.message : String(err)}`);
           }
         }
 
@@ -364,11 +363,11 @@ export class MetadataResolver {
                 }
             );
             if (resp.ok) {
-              console.log(`  ↳ Found: ${candidate}`);
+              console.log(`  Found: ${candidate}`);
               return candidate;
             }
           } catch (err) {
-            console.log(`  ↳ ${candidate} not available: ${err instanceof Error ? err.message : String(err)}`);
+            console.log(`  Not available: ${candidate} - ${err instanceof Error ? err.message : String(err)}`);
           }
         }
 
@@ -434,33 +433,11 @@ export class MetadataResolver {
   }
 
   /**
-   * Find a vocabulary entry by ID across all loaded vocabularies
-   */
-  findVocabularyEntry(
-      vocabularies: ResolvedVocabulary[],
-      entryId: string
-  ): VocabularyEntry | undefined {
-    for (const vocab of vocabularies) {
-      if (vocab.dictionary[entryId]) {
-        return vocab.dictionary[entryId];
-      }
-    }
-    return undefined;
-  }
-
-  /**
    * Clear all caches (profiles, metadata, and vocabularies)
    */
   clearCache(): void {
     this.cache.clear();
     this.vocabulariesStore.clear();
-  }
-
-  /**
-   * Set CORS proxy URL
-   */
-  setCorsProxy(proxy: string | undefined): void {
-    this.corsProxy = proxy;
   }
 
   /**
@@ -488,12 +465,5 @@ export class MetadataResolver {
     });
 
     return combinedDict;
-  }
-
-  /**
-   * Clear only the vocabularies store
-   */
-  clearVocabularies(): void {
-    this.vocabulariesStore.clear();
   }
 }
