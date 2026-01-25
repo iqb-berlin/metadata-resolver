@@ -23,6 +23,10 @@ export class MetadataResolver {
     this.requestTimeout = options?.requestTimeout || 10000; // 10s default
   }
 
+  setCorsProxy(proxy: string | undefined): void {
+    this.corsProxy = proxy;
+  }
+
   /**
    * Load a profile from a URL
    */
@@ -35,8 +39,8 @@ export class MetadataResolver {
 
     try {
       const fetchUrl = this.corsProxy
-          ? `${this.corsProxy}${encodeURIComponent(url)}`
-          : url;
+        ? `${this.corsProxy}${encodeURIComponent(url)}`
+        : url;
 
       const response = await fetch(fetchUrl, {
         signal: AbortSignal.timeout(this.requestTimeout),
@@ -44,7 +48,7 @@ export class MetadataResolver {
 
       if (!response.ok) {
         throw new Error(
-            `Failed to load profile: ${response.status} ${response.statusText}`
+          `Failed to load profile: ${response.status} ${response.statusText}`
         );
       }
 
@@ -57,9 +61,8 @@ export class MetadataResolver {
       return profile;
     } catch (error) {
       throw new Error(
-          `Error loading profile from ${url}: ${
-              error instanceof Error ? error.message : "Unknown error"
-          }`
+        `Error loading profile from ${url}: ${error instanceof Error ? error.message : "Unknown error"
+        }`
       );
     }
   }
@@ -76,8 +79,8 @@ export class MetadataResolver {
 
     try {
       const fetchUrl = this.corsProxy
-          ? `${this.corsProxy}${encodeURIComponent(url)}`
-          : url;
+        ? `${this.corsProxy}${encodeURIComponent(url)}`
+        : url;
 
       const response = await fetch(fetchUrl, {
         signal: AbortSignal.timeout(this.requestTimeout),
@@ -85,7 +88,7 @@ export class MetadataResolver {
 
       if (!response.ok) {
         throw new Error(
-            `Failed to load metadata: ${response.status} ${response.statusText}`
+          `Failed to load metadata: ${response.status} ${response.statusText}`
         );
       }
 
@@ -98,9 +101,8 @@ export class MetadataResolver {
       return metadata;
     } catch (error) {
       throw new Error(
-          `Error loading metadata from ${url}: ${
-              error instanceof Error ? error.message : "Unknown error"
-          }`
+        `Error loading metadata from ${url}: ${error instanceof Error ? error.message : "Unknown error"
+        }`
       );
     }
   }
@@ -146,8 +148,8 @@ export class MetadataResolver {
       }
 
       const fetchUrl = this.corsProxy
-          ? `${this.corsProxy}${encodeURIComponent(jsonLdUrl)}`
-          : jsonLdUrl;
+        ? `${this.corsProxy}${encodeURIComponent(jsonLdUrl)}`
+        : jsonLdUrl;
 
       if (this.corsProxy) {
         console.log(`  Using CORS proxy`);
@@ -180,9 +182,8 @@ export class MetadataResolver {
       }
 
       console.log(
-          `  Loaded: ${data.hasTopConcept.length} concepts, ${
-              Object.keys(dictionary).length
-          } entries`
+        `  Loaded: ${data.hasTopConcept.length} concepts, ${Object.keys(dictionary).length
+        } entries`
       );
       return resolved;
     } catch (error) {
@@ -204,18 +205,18 @@ export class MetadataResolver {
     const urls = this.extractVocabularyUrls(profile);
 
     const results = await Promise.allSettled(
-        urls.map((url) => this.loadVocabulary(url))
+      urls.map((url) => this.loadVocabulary(url))
     );
 
     const vocabularies = results
-        .filter(
-            (result): result is PromiseFulfilledResult<ResolvedVocabulary> =>
-                result.status === "fulfilled"
-        )
-        .map((result) => result.value);
+      .filter(
+        (result): result is PromiseFulfilledResult<ResolvedVocabulary> =>
+          result.status === "fulfilled"
+      )
+      .map((result) => result.value);
 
     console.log(
-        `Loaded ${vocabularies.length} vocabularies (${this.vocabulariesStore.size} total in store)`
+      `Loaded ${vocabularies.length} vocabularies (${this.vocabulariesStore.size} total in store)`
     );
 
     return vocabularies;
@@ -225,17 +226,17 @@ export class MetadataResolver {
    * Build a dictionary from vocabulary data
    */
   private buildVocabularyDictionary(
-      vocabData: VocabularyData
+    vocabData: VocabularyData
   ): Record<string, VocabularyEntry> {
     const dictionary: Record<string, VocabularyEntry> = {};
 
     const processNode = (node: any, parentNotation: string[] = []) => {
       const notation = node.notation || parentNotation;
       const label =
-          node.prefLabel?.[this.preferredLanguage] ||
-          node.prefLabel?.de ||
-          node.prefLabel?.en ||
-          "";
+        node.prefLabel?.[this.preferredLanguage] ||
+        node.prefLabel?.de ||
+        node.prefLabel?.en ||
+        "";
 
       dictionary[node.id] = {
         id: node.id,
@@ -259,7 +260,7 @@ export class MetadataResolver {
    * Load a profile and all its vocabularies
    */
   async loadProfileWithVocabularies(
-      profileUrl: string
+    profileUrl: string
   ): Promise<ProfileWithVocabularies> {
     const profile = await this.loadProfile(profileUrl);
     const vocabularies = await this.loadVocabularies(profile);
@@ -279,8 +280,8 @@ export class MetadataResolver {
       console.log(`  CORS proxy: ${this.corsProxy || "disabled"}`);
 
       const fetchUrl = this.corsProxy
-          ? `${this.corsProxy}${encodeURIComponent(originalUrl)}`
-          : originalUrl;
+        ? `${this.corsProxy}${encodeURIComponent(originalUrl)}`
+        : originalUrl;
 
       console.log(`  Fetching: ${fetchUrl}`);
       const res = await fetch(fetchUrl, {
@@ -292,8 +293,8 @@ export class MetadataResolver {
       const contentType = res.headers.get("content-type");
 
       if (
-          contentType?.includes("application/json") ||
-          contentType?.includes("application/ld+json")
+        contentType?.includes("application/json") ||
+        contentType?.includes("application/ld+json")
       ) {
         return finalUrl;
       }
@@ -304,13 +305,13 @@ export class MetadataResolver {
           const jsonldUrl = finalUrl.replace(/\.html$/, ".jsonld");
           try {
             const resp = await fetch(
-                this.corsProxy
-                    ? `${this.corsProxy}${encodeURIComponent(jsonldUrl)}`
-                    : jsonldUrl,
-                {
-                  method: "HEAD",
-                  signal: AbortSignal.timeout(this.requestTimeout),
-                }
+              this.corsProxy
+                ? `${this.corsProxy}${encodeURIComponent(jsonldUrl)}`
+                : jsonldUrl,
+              {
+                method: "HEAD",
+                signal: AbortSignal.timeout(this.requestTimeout),
+              }
             );
             if (resp.ok) {
               console.log(` Found JSON-LD: ${jsonldUrl}`);
@@ -324,13 +325,13 @@ export class MetadataResolver {
           const jsonUrl = finalUrl.replace(/\.html$/, ".json");
           try {
             const resp = await fetch(
-                this.corsProxy
-                    ? `${this.corsProxy}${encodeURIComponent(jsonUrl)}`
-                    : jsonUrl,
-                {
-                  method: "HEAD",
-                  signal: AbortSignal.timeout(this.requestTimeout),
-                }
+              this.corsProxy
+                ? `${this.corsProxy}${encodeURIComponent(jsonUrl)}`
+                : jsonUrl,
+              {
+                method: "HEAD",
+                signal: AbortSignal.timeout(this.requestTimeout),
+              }
             );
             if (resp.ok) {
               console.log(` Found JSON: ${jsonUrl}`);
@@ -344,23 +345,23 @@ export class MetadataResolver {
         // Try index.json / index.jsonld
         const jsonCandidates = [
           finalUrl.endsWith("/")
-              ? `${finalUrl}index.json`
-              : `${finalUrl}/index.json`,
+            ? `${finalUrl}index.json`
+            : `${finalUrl}/index.json`,
           finalUrl.endsWith("/")
-              ? `${finalUrl}index.jsonld`
-              : `${finalUrl}/index.jsonld`,
+            ? `${finalUrl}index.jsonld`
+            : `${finalUrl}/index.jsonld`,
         ];
 
         for (const candidate of jsonCandidates) {
           try {
             const resp = await fetch(
-                this.corsProxy
-                    ? `${this.corsProxy}${encodeURIComponent(candidate)}`
-                    : candidate,
-                {
-                  method: "HEAD",
-                  signal: AbortSignal.timeout(this.requestTimeout),
-                }
+              this.corsProxy
+                ? `${this.corsProxy}${encodeURIComponent(candidate)}`
+                : candidate,
+              {
+                method: "HEAD",
+                signal: AbortSignal.timeout(this.requestTimeout),
+              }
             );
             if (resp.ok) {
               console.log(`  Found: ${candidate}`);
@@ -378,9 +379,9 @@ export class MetadataResolver {
       return finalUrl;
     } catch (err) {
       console.warn(
-          "Failed to resolve JSON-LD URL, falling back to original:",
-          originalUrl,
-          err
+        "Failed to resolve JSON-LD URL, falling back to original:",
+        originalUrl,
+        err
       );
       return originalUrl;
     }
@@ -390,8 +391,8 @@ export class MetadataResolver {
    * Load both profile with vocabularies and metadata
    */
   async loadAll(
-      profileUrl: string,
-      metadataUrl: string
+    profileUrl: string,
+    metadataUrl: string
   ): Promise<MetadataWithProfile> {
     const [profileWithVocabs, metadata] = await Promise.all([
       this.loadProfileWithVocabularies(profileUrl),
@@ -409,8 +410,8 @@ export class MetadataResolver {
    * Extract text from a label (string or multilingual array)
    */
   static extractLabelText(
-      label: string | Array<{ lang: string; value: string }>,
-      preferredLanguage: string = "de"
+    label: string | Array<{ lang: string; value: string }>,
+    preferredLanguage: string = "de"
   ): string {
     if (typeof label === "string") {
       return label;
