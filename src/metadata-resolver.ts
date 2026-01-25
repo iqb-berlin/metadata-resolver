@@ -37,21 +37,29 @@ export class MetadataResolver {
       return this.cache.get(cacheKey);
     }
 
-    try {
-      const fetchUrl = this.corsProxy
-        ? `${this.corsProxy}${encodeURIComponent(url)}`
-        : url;
+    const fetchUrl = this.corsProxy
+      ? `${this.corsProxy}${encodeURIComponent(url)}`
+      : url;
 
-      const response = await fetch(fetchUrl, {
+    let response: Response;
+    try {
+      response = await fetch(fetchUrl, {
         signal: AbortSignal.timeout(this.requestTimeout),
       });
+    } catch (error) {
+      throw new Error(
+        `Error loading profile from ${url}: ${error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to load profile: ${response.status} ${response.statusText}`
-        );
-      }
+    if (!response.ok) {
+      throw new Error(
+        `Error loading profile from ${url}: ${response.status} ${response.statusText}`
+      );
+    }
 
+    try {
       const profile: MDProfile = await response.json();
 
       if (this.useCache) {
@@ -61,7 +69,7 @@ export class MetadataResolver {
       return profile;
     } catch (error) {
       throw new Error(
-        `Error loading profile from ${url}: ${error instanceof Error ? error.message : "Unknown error"
+        `Error parsing profile from ${url}: ${error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
@@ -77,21 +85,29 @@ export class MetadataResolver {
       return this.cache.get(cacheKey);
     }
 
-    try {
-      const fetchUrl = this.corsProxy
-        ? `${this.corsProxy}${encodeURIComponent(url)}`
-        : url;
+    const fetchUrl = this.corsProxy
+      ? `${this.corsProxy}${encodeURIComponent(url)}`
+      : url;
 
-      const response = await fetch(fetchUrl, {
+    let response: Response;
+    try {
+      response = await fetch(fetchUrl, {
         signal: AbortSignal.timeout(this.requestTimeout),
       });
+    } catch (error) {
+      throw new Error(
+        `Error loading metadata from ${url}: ${error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to load metadata: ${response.status} ${response.statusText}`
-        );
-      }
+    if (!response.ok) {
+      throw new Error(
+        `Error loading metadata from ${url}: ${response.status} ${response.statusText}`
+      );
+    }
 
+    try {
       const metadata = await response.json();
 
       if (this.useCache) {
@@ -101,7 +117,7 @@ export class MetadataResolver {
       return metadata;
     } catch (error) {
       throw new Error(
-        `Error loading metadata from ${url}: ${error instanceof Error ? error.message : "Unknown error"
+        `Error parsing metadata from ${url}: ${error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
@@ -155,18 +171,56 @@ export class MetadataResolver {
         console.log(`  Using CORS proxy`);
       }
 
-      const response = await fetch(fetchUrl, {
-        signal: AbortSignal.timeout(this.requestTimeout),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      let response: Response;
+      try {
+        response = await fetch(fetchUrl, {
+          signal: AbortSignal.timeout(this.requestTimeout),
+        });
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`  Failed to load vocabulary: ${errorMsg}`);
+        return {
+          url,
+          data: { hasTopConcept: [] },
+          dictionary: {},
+          error: errorMsg,
+        };
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        const errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+        console.error(`  Failed to load vocabulary: ${errorMsg}`);
+        return {
+          url,
+          data: { hasTopConcept: [] },
+          dictionary: {},
+          error: errorMsg,
+        };
+      }
+
+      let data: VocabularyData;
+      try {
+        data = await response.json();
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`  Failed to parse vocabulary JSON: ${errorMsg}`);
+        return {
+          url,
+          data: { hasTopConcept: [] },
+          dictionary: {},
+          error: errorMsg,
+        };
+      }
 
       if (!data.hasTopConcept || !Array.isArray(data.hasTopConcept)) {
-        throw new Error("Invalid structure: missing hasTopConcept");
+        const errorMsg = "Invalid structure: missing hasTopConcept";
+        console.error(`  Failed to load vocabulary: ${errorMsg}`);
+        return {
+          url,
+          data: { hasTopConcept: [] },
+          dictionary: {},
+          error: errorMsg,
+        };
       }
 
       const dictionary = this.buildVocabularyDictionary(data);
@@ -187,6 +241,7 @@ export class MetadataResolver {
       );
       return resolved;
     } catch (error) {
+      // Catch any other unexpected errors
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`  Failed to load vocabulary: ${errorMsg}`);
       return {
