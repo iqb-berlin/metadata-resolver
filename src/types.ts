@@ -55,11 +55,11 @@ export interface VocabularyData {
 }
 
 export interface VocabularyEntry {
-  id: string
+  id: string;
   name: string;
-  notation: string[],
-  description?: string,
-  text: TextWithLanguage[],
+  notation: string[];
+  description?: string;
+  text: TextWithLanguage[];
 }
 
 /**
@@ -85,7 +85,7 @@ export interface ProfileWithVocabularies {
  */
 export interface MetadataWithProfile {
   profile: MDProfile;
-  metadata: any;
+  metadata: unknown;
   vocabularies: ResolvedVocabulary[];
 }
 

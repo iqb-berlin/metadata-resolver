@@ -1,4 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import {
+  describe, it, expect, beforeEach
+} from 'vitest';
+import { MDProfile } from '@iqb/metadata';
 import { MetadataResolver } from './metadata-resolver';
 
 describe('MetadataResolver', () => {
@@ -60,7 +63,7 @@ describe('MetadataResolver', () => {
         ]
       };
 
-      const urls = resolver.extractVocabularyUrls(profile as any);
+      const urls = resolver.extractVocabularyUrls(profile as unknown as MDProfile);
       expect(urls).toEqual(['http://example.com/vocab1.json']);
     });
 
@@ -83,7 +86,7 @@ describe('MetadataResolver', () => {
         ]
       };
 
-      const urls = resolver.extractVocabularyUrls(profile as any);
+      const urls = resolver.extractVocabularyUrls(profile as unknown as MDProfile);
       expect(urls).toEqual([]);
     });
 
@@ -112,7 +115,7 @@ describe('MetadataResolver', () => {
         ]
       };
 
-      const urls = resolver.extractVocabularyUrls(profile as any);
+      const urls = resolver.extractVocabularyUrls(profile as unknown as MDProfile);
       expect(urls).toEqual(['http://example.com/vocab.json']);
     });
   });
