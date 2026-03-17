@@ -1,4 +1,4 @@
-import { MDProfile } from "@iqb/metadata";
+import {LanguageCodedText, MDProfile, MDProfileEntry} from "@iqbspecs/metadata-profile";
 import {
   VocabularyData,
   VocabularyEntry,
@@ -113,7 +113,7 @@ export class MetadataResolver {
 
     profile.groups?.forEach((group) => {
       group.entries?.forEach((entry) => {
-        if (entry.type === "vocabulary" && entry.parameters) {
+        if (entry.type.toUpperCase() === "VOCABULARY" && entry.parameters) {
           const params = entry.parameters as { url?: string };
           if (params.url) {
             urls.add(params.url);
@@ -409,7 +409,7 @@ export class MetadataResolver {
    * Extract text from a label (string or multilingual array)
    */
   static extractLabelText(
-      label: string | Array<{ lang: string; value: string }>,
+      label: string | LanguageCodedText[],
       preferredLanguage: string = "de"
   ): string {
     if (typeof label === "string") {
