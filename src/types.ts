@@ -1,37 +1,21 @@
-import { MDProfile } from '@iqb/metadata';
+import {
+  MDProfile,
+  MDProfileGroup,
+  MDProfileEntry,
+  LanguageCodedText
+} from '@iqbspecs/metadata-profile';
 
-/**
- * Configuration options for the MetadataResolver
- */
+export type {
+  MDProfile, MDProfileGroup, MDProfileEntry, LanguageCodedText
+};
+
 export interface LoaderOptions {
-  /**
-   * CORS proxy URL (e.g., 'https://corsproxy.io/?')
-   * If provided, all fetch requests will be proxied through this URL
-   */
   corsProxy?: string;
-
-  /**
-   * Enable caching of loaded resources
-   * @default true
-   */
   cache?: boolean;
-
-  /**
-   * Preferred language for vocabulary labels
-   * @default 'de'
-   */
   preferredLanguage?: string;
-
-  /**
-   * Request timeout in milliseconds
-   * @default 10000
-   */
   requestTimeout?: number;
 }
 
-/**
- * Vocabulary concept node structure
- */
 export interface VocabConcept {
   id: string;
   notation?: string[];
@@ -44,9 +28,6 @@ export interface VocabConcept {
   narrower?: VocabConcept[];
 }
 
-/**
- * Raw vocabulary data structure from vocabulary JSON files
- */
 export interface VocabularyData {
   id?: string;
   type?: string;
@@ -59,12 +40,9 @@ export interface VocabularyEntry {
   name: string;
   notation: string[];
   description?: string;
-  text: TextWithLanguage[];
+  text: LanguageCodedText[];
 }
 
-/**
- * Resolved vocabulary with data and lookup dictionary
- */
 export interface ResolvedVocabulary {
   url: string;
   data: VocabularyData;
@@ -72,17 +50,11 @@ export interface ResolvedVocabulary {
   error?: string;
 }
 
-/**
- * Profile loaded with all its vocabularies
- */
 export interface ProfileWithVocabularies {
   profile: MDProfile;
   vocabularies: ResolvedVocabulary[];
 }
 
-/**
- * Complete metadata package with profile, metadata, and vocabularies
- */
 export interface MetadataWithProfile {
   profile: MDProfile;
   metadata: unknown;
@@ -90,17 +62,14 @@ export interface MetadataWithProfile {
 }
 
 /**
- * Multilingual text structure
+ * @deprecated Use LanguageCodedText instead.
  */
-export interface TextWithLanguage {
-  lang: string;
-  value: string;
-}
+export type TextWithLanguage = LanguageCodedText;
 
 /**
- * Text with language and ID (for vocabulary references)
+ * @deprecated Will be removed when values spec is adopted.
  */
 export interface TextWithLanguageAndId {
   id: string;
-  text: TextWithLanguage[];
+  text: LanguageCodedText[];
 }
