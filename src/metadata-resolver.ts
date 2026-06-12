@@ -1,5 +1,5 @@
 /* eslint-disable no-console, no-restricted-syntax, no-await-in-loop */
-import { MDProfile } from '@iqb/metadata';
+import { MDProfile } from '@iqbspecs/metadata-profile';
 import {
   VocabularyData,
   VocabularyEntry,
@@ -130,7 +130,7 @@ export class MetadataResolver {
 
     profile.groups?.forEach(group => {
       group.entries?.forEach(entry => {
-        if (entry.type === 'vocabulary' && entry.parameters) {
+        if (entry.type.toUpperCase() === 'VOCABULARY' && entry.parameters) {
           const params = entry.parameters as { url?: string };
           if (params.url) {
             urls.add(params.url);
@@ -282,7 +282,7 @@ export class MetadataResolver {
     const processNode = (node: VocabConcept, parentNotation: string[] = []) => {
       const notation = node.notation || parentNotation;
       const label =
-        node.prefLabel?.[this.preferredLanguage] || node.prefLabel?.de || node.prefLabel?.en || '';
+          node.prefLabel?.[this.preferredLanguage] || node.prefLabel?.de || node.prefLabel?.en || '';
 
       dictionary[node.id] = {
         id: node.id,
@@ -338,7 +338,7 @@ export class MetadataResolver {
 
       if (
         contentType?.includes('application/json') ||
-        contentType?.includes('application/ld+json')
+          contentType?.includes('application/ld+json')
       ) {
         return finalUrl;
       }
