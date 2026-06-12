@@ -1,7 +1,7 @@
 import {
   describe, it, expect, beforeEach
 } from 'vitest';
-import { MDProfile } from '@iqb/metadata';
+import { MDProfile } from '@iqbspecs/metadata-profile';
 import { MetadataResolver } from './metadata-resolver';
 
 describe('MetadataResolver', () => {
