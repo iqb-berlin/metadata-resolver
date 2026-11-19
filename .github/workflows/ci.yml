@@ -11,6 +11,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['22.18.0', '22']
 
     steps:
     - uses: actions/checkout@v7
@@ -18,11 +21,11 @@ jobs:
     - name: Use Node.js
       uses: actions/setup-node@v7
       with:
-        node-version: '22'
+        node-version: ${{ matrix.node }}
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm ci
+      run: npm ci --engine-strict
 
     - name: Audit published dependencies
       run: npm audit --omit=dev

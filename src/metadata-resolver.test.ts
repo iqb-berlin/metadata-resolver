@@ -17,6 +17,16 @@ function jsonResponse(data: unknown, url: string): Response {
   return response;
 }
 
+const waitForAbort: typeof fetch = (_url, init) => {
+  const signal = init?.signal;
+  if (!signal) {
+    return Promise.reject(new Error('Expected an abort signal'));
+  }
+  return new Promise((_resolve, reject) => {
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+  });
+};
+
 describe('MetadataResolver', () => {
   let resolver: MetadataResolver;
 
@@ -149,6 +159,7 @@ describe('MetadataResolver network requests', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it.each([true, false])('loads and tracks vocabularies with cache: %s', async cache => {
@@ -229,13 +240,31 @@ describe('MetadataResolver network requests', () => {
   });
 
   it('aborts a pending profile fetch at the configured timeout', async () => {
-    resolver = new MetadataResolver({ requestTimeout: 10 });
-    fetchMock.mockImplementation((_url, init) => new Promise((_resolve, reject) => {
-      const { signal } = init ?? {};
-      signal?.addEventListener('abort', () => reject(signal.reason), { once: true });
-    }));
+    const requestTimeout = 10;
+    const timeout = vi.spyOn(AbortSignal, 'timeout');
+    resolver = new MetadataResolver({ requestTimeout });
+    fetchMock.mockImplementation(waitForAbort);
+
     await expect(resolver.loadProfile(profileUrl)).rejects.toThrow(/timeout/i);
+    expect(timeout.mock.calls).toEqual([[requestTimeout]]);
     expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true);
+  });
+
+  it('returns a timeout error when the vocabulary fetch is aborted', async () => {
+    const requestTimeout = 25;
+    const timeout = vi.spyOn(AbortSignal, 'timeout');
+    resolver = new MetadataResolver({ requestTimeout });
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(vocabulary, vocabularyUrl))
+      .mockImplementationOnce(waitForAbort);
+
+    await expect(resolver.loadVocabulary(vocabularyUrl)).resolves.toMatchObject({
+      url: vocabularyUrl,
+      error: expect.stringMatching(/timeout/i),
+      dictionary: {}
+    });
+    expect(timeout.mock.calls).toEqual([[requestTimeout], [requestTimeout]]);
+    expect(fetchMock.mock.calls[1][1]?.signal?.aborted).toBe(true);
   });
 
   it('falls back to the original URL when endpoint discovery fails', async () => {

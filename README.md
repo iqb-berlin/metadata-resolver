@@ -36,7 +36,7 @@ notes and the source commits of older npm releases.
 ### Setup
 
 ```bash
-# Use Node.js 22.13 or later in the Node.js 22 LTS line.
+# Use Node.js 22.18.0 or later in the Node.js 22 LTS line.
 npm ci
 ```
 
@@ -84,20 +84,49 @@ After CI passes on the merged commit, use a clean checkout of that exact commit
 from `origin/main`. Confirm that the version has yet to be published to npm.
 
 ```bash
-npm ci
-npm run typecheck && npm run lint && npm test && npm run build
-npm pack --dry-run
-version=$(node -p 'require("./package.json").version')
-git tag -a "v$version" -m "Release v$version"
-git push origin "v$version"
-npm run release
-npm view "@iqb/metadata-resolver@$version" gitHead
-git rev-parse "v$version^{commit}"
+(
+  set -euo pipefail
+
+  git fetch origin main
+  commit=$(git rev-parse HEAD)
+  main_commit=$(git rev-parse FETCH_HEAD)
+  working_tree=$(git status --porcelain)
+  if [[ "$commit" != "$main_commit" || -n "$working_tree" ]]; then
+    echo 'Release requires a clean checkout of origin/main.' >&2
+    exit 1
+  fi
+
+  npm ci --engine-strict
+  npm run typecheck
+  npm run lint
+  npm test
+  npm run build
+  npm pack --dry-run
+
+  version=$(node -p 'require("./package.json").version')
+  tag="v$version"
+  tag_ref="refs/tags/$tag"
+  if ! git show-ref --verify --quiet "$tag_ref"; then
+    git tag -a "$tag" -m "Release $tag" "$commit"
+  fi
+  test "$(git rev-parse "$tag_ref^{commit}")" = "$commit"
+  git push origin "$tag_ref"
+
+  remote_commit=$(git ls-remote --exit-code --tags origin "$tag_ref^{}" | cut -f1)
+  if [[ "$remote_commit" != "$commit" ]]; then
+    echo "Remote tag $tag does not point to $commit." >&2
+    exit 1
+  fi
+
+  npm run release
+  test "$(npm view "@iqb/metadata-resolver@$version" gitHead)" = "$commit"
+)
 ```
 
-The last two commands should return the same commit. Create a GitHub release
-from the tag using the corresponding changelog entry. For a prerelease, use an
-explicit prerelease version and run `npm run release -- --tag beta`.
+After the registry commit check passes, create a GitHub release from the tag
+using the corresponding changelog entry. For a prerelease, use an explicit
+prerelease version and replace the publish command in the block with
+`npm run release -- --tag beta`.
 
 ## License
 
