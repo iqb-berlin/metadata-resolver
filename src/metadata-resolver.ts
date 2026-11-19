@@ -13,7 +13,7 @@ import {
 export class MetadataResolver {
   private corsProxy: string | undefined;
   private cache: Map<string, MDProfile | unknown> = new Map(); // For profiles and metadata only
-  private vocabulariesStore: Map<string, ResolvedVocabulary> = new Map(); // Source of truth for vocabularies
+  private vocabulariesStore: Map<string, ResolvedVocabulary> = new Map();
   private useCache: boolean;
   private preferredLanguage: string;
   private requestTimeout: number;
@@ -144,10 +144,9 @@ export class MetadataResolver {
 
   /**
    * Load a single vocabulary from URL
-   * Uses vocabulariesStore as the cache
+   * Records the latest successful result and reuses it when caching is enabled
    */
   async loadVocabulary(url: string): Promise<ResolvedVocabulary> {
-    // Check vocabulariesStore (not general cache)
     if (this.useCache && this.vocabulariesStore.has(url)) {
       return this.vocabulariesStore.get(url)!;
     }
@@ -229,10 +228,7 @@ export class MetadataResolver {
         dictionary
       };
 
-      // Store in vocabulariesStore (single source of truth)
-      if (this.useCache) {
-        this.vocabulariesStore.set(url, resolved);
-      }
+      this.vocabulariesStore.set(url, resolved);
 
       console.log(
         `  Loaded: ${data.hasTopConcept.length} concepts, ${Object.keys(dictionary).length
@@ -282,7 +278,7 @@ export class MetadataResolver {
     const processNode = (node: VocabConcept, parentNotation: string[] = []) => {
       const notation = node.notation || parentNotation;
       const label =
-          node.prefLabel?.[this.preferredLanguage] || node.prefLabel?.de || node.prefLabel?.en || '';
+        node.prefLabel?.[this.preferredLanguage] || node.prefLabel?.de || node.prefLabel?.en || '';
 
       dictionary[node.id] = {
         id: node.id,
