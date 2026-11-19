@@ -1,13 +1,17 @@
 # Changelog
 
-## 0.2.2 (unreleased)
+## 0.2.2
 
-- Keep successfully loaded vocabularies available through the resolver's getters
-  with `cache: false`, while bypassing the resolver cache on each load.
-- Support `@iqbspecs/metadata-profile` 0.11.1 and 0.12.x as a peer dependency.
-- Include ESM and CommonJS builds and all three TypeScript declaration files.
-- Cover vocabulary loading, cache behaviour, timeouts, HTTP errors and URL
-  resolution with automated tests. Update the lint, test and CI tooling.
+- With `cache: false`, the getters retain the last successfully loaded
+  vocabulary for each URL. Loads in this mode still call `fetch`.
+- Share `@iqbspecs/metadata-profile` with consuming projects through a peer
+  dependency supporting `^0.11.1` and `^0.12.0`.
+- Ship ESM and CommonJS builds with their TypeScript declarations and a generic
+  `dist/index.d.ts` generated using Node.js.
+- Cover cache behaviour, HTTP and JSON errors, timeouts, redirects and
+  fallbacks with automated tests. CI checks Node.js 22.18.0 and the latest
+  Node.js 22, runs dependency audits and uses the updated lint and test tooling.
+- Document releases from `main` and verify the remote tag before publishing to npm.
 
 ## 0.2.1 (2026-06-29)
 
