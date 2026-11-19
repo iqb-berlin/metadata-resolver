@@ -6,11 +6,11 @@
   vocabulary for each URL. Loads in this mode still call `fetch`.
 - Share `@iqbspecs/metadata-profile` with consuming projects through a peer
   dependency supporting `^0.11.1` and `^0.12.0`.
-- Ship ESM and CommonJS builds with their TypeScript declarations and a generic
-  `dist/index.d.ts` generated using Node.js.
+- Generate the generic `dist/index.d.ts` with a platform-independent Node.js
+  build step and include the changelog in the npm package.
 - Cover cache behaviour, HTTP and JSON errors, timeouts, redirects and
-  fallbacks with automated tests. CI checks Node.js 22.18.0 and the latest
-  Node.js 22, runs dependency audits and uses the updated lint and test tooling.
+  fallbacks with automated tests. CI checks Node.js 22.18.0 and a Node.js 22.x
+  release, runs dependency audits and uses the updated lint and test tooling.
 - Document releases from `main` and verify the remote tag before publishing to npm.
 
 ## 0.2.1 (2026-06-29)
