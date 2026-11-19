@@ -24,16 +24,20 @@ console.log(data.vocabularies);
 
 See [GETTING_STARTED.md](./GETTING_STARTED.md) for detailed usage guide.
 
-## Version
+## Versions
 
-**0.1.0** - Testing phase
+The [npm package](https://www.npmjs.com/package/@iqb/metadata-resolver) lists the
+latest published version. The version in [package.json](./package.json) is the
+version prepared on this branch. See the [changelog](./CHANGELOG.md) for release
+notes and the source commits of older npm releases.
 
 ## Development
 
 ### Setup
 
 ```bash
-npm install
+# Use Node.js 22.13 or later in the Node.js 22 LTS line.
+npm ci
 ```
 
 ### Quality Checks
@@ -50,9 +54,19 @@ npm run typecheck
 # Run tests
 npm run test
 
+# Report dependency vulnerabilities
+npm audit --omit=dev
+npm audit
+
 # Format code
 npm run format
 ```
+
+CI runs both audits. The scoped `minimatch` override for
+`eslint-plugin-sonarjs` follows the [IQB ESLint dependency guidance](https://github.com/iqb-berlin/eslint-config/blob/master/docs/security.md).
+When updating the lint stack, check whether its declared dependency range
+includes the fixed major before removing the override. The advisory is
+[GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249).
 
 ### Build
 
@@ -62,33 +76,28 @@ npm run build
 
 ## Release
 
-To publish a new version to NPM:
+Releases are cut from `main`. Before merging a release PR, update the changelog
+and set the intended version in both npm manifests, for example with
+`npm version patch --no-git-tag-version` when a bump is needed.
 
-1.  **Update Version**:
-    ```bash
-    npm version patch # or minor, major
-    ```
-    This updates `package.json` and creates a git tag.
+After CI passes on the merged commit, use a clean checkout of that exact commit
+from `origin/main`. Confirm that the version has yet to be published to npm.
 
-2.  **Push Changes**:
-    ```bash
-    git push && git push --tags
-    ```
+```bash
+npm ci
+npm run typecheck && npm run lint && npm test && npm run build
+npm pack --dry-run
+version=$(node -p 'require("./package.json").version')
+git tag -a "v$version" -m "Release v$version"
+git push origin "v$version"
+npm run release
+npm view "@iqb/metadata-resolver@$version" gitHead
+git rev-parse "v$version^{commit}"
+```
 
-3.  **Publish**:
-    ```bash
-    npm run release
-    ```
-    The `prepublishOnly` script will automatically run tests, linting, and build before publishing ensures only valid code is released.
-
-### Configuration
-
--   **Registry**: Configured in `.npmrc` (default is npmjs.org).
--   **Access**: defaults to `public` in `package.json`.
--   **Tags**: pass flags to the release script:
-    ```bash
-    npm run release -- --tag beta
-    ```
+The last two commands should return the same commit. Create a GitHub release
+from the tag using the corresponding changelog entry. For a prerelease, use an
+explicit prerelease version and run `npm run release -- --tag beta`.
 
 ## License
 
