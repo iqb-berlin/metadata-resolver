@@ -71,24 +71,25 @@ http://localhost:8080/test.html
 4. Review the output in the display area below
 5. Use "Clear Output" to reset the display
 
-## Step 3: Link for Local Development
+## Step 3: Install for Local Development
 
-To use this package in another project without publishing to npm:
+To use this package in another project without publishing to npm, install
+`@iqbspecs/metadata-profile` in the consuming project. The resolver supports
+`^0.11.1` and `^0.12.0`.
 
-### Option A: npm link (Recommended)
+### Option A: Local npm Archive (Recommended)
 
-In the resolver package directory:
+Run `npm pack` in the resolver directory after building it.
 
 ```bash
-cd metadata-resolver
-npm link
+npm pack
 ```
 
-In your other project directory:
+In the consuming project, install the archive whose filename `npm pack` printed.
+The following command uses version `0.2.2`.
 
 ```bash
-cd ../your-project
-npm link @iqb/metadata-resolver
+npm install ../metadata-resolver/iqb-metadata-resolver-0.2.2.tgz
 ```
 
 Now you can import it in your project:
@@ -97,23 +98,27 @@ Now you can import it in your project:
 import { MetadataResolver } from '@iqb/metadata-resolver';
 ```
 
-### Option B: Direct File Path
+### Option B: Link Matching Profile Versions
 
-In your project's package.json:
+A symbolic link resolves TypeScript declarations from the resolver checkout.
+Use this option when both projects use the same version of
+`@iqbspecs/metadata-profile`. The resolver checkout uses 0.12 during
+development, so projects on 0.11.1 should use the local archive.
 
-```json
-{
-  "dependencies": {
-    "@iqb/metadata-resolver": "file:../metadata-resolver"
-  }
-}
-```
-
-Then run:
+After building, run this in the resolver directory.
 
 ```bash
-npm install
+npm link
 ```
+
+Then run this in the consuming project.
+
+```bash
+npm link @iqb/metadata-resolver
+```
+
+Local `file:` directory dependencies can also create symbolic links. Use the
+archive when the two projects use different profile versions.
 
 ### Option C: Copy dist Files
 
