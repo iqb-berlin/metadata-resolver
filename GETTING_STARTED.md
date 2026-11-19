@@ -260,12 +260,15 @@ The MetadataResolver accepts these configuration options:
 
 ```typescript
 interface LoaderOptions {
-  cache?: boolean;              // Enable caching (default: true)
+  cache?: boolean;              // Reuse prior fetch results (default: true)
   preferredLanguage?: string;   // Language for labels (default: 'de')
   requestTimeout?: number;      // Request timeout in ms (default: 10000)
   corsProxy?: string;           // Optional CORS proxy URL
 }
 ```
+
+With `cache: false`, each load calls `fetch` again. The vocabulary getters still
+return the last successfully loaded vocabulary for each URL.
 
 Example with all options:
 
